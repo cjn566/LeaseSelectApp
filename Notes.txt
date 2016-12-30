@@ -1,0 +1,74 @@
+TODO:
+	Function
+		Core
+			Controller for recent, overall, most associated
+				Portional influence, or total?
+			implement suggestions
+			
+		Accessability
+	Design
+		
+
+
+
+
+Behavour
+	Start typing a lease number
+		The suggestion list will populate with lease numbers it could be
+			Based on suggestion algorithm
+				lease numbers most associated with those in the accepted set
+				most used of all time
+				most recently used
+			Controls to adjust the weighting of the suggestion factors
+			Filtered to only match the search text
+	Can add a lease number that doesnt exist yet
+	Use mouse or number hotkeys to add leases from the suggestion set to the accepted set
+	copy accepted set to clipboard
+		accepted set becomes stale
+			can refresh leases to accepted set
+			leases that aren't refreshed by next copy action are discarded?
+		post which leases were used to DB
+	
+		
+		
+		
+Database
+	Tables
+		Leases
+			Lease number (pk)
+			usage count
+			most recently used used indicator
+			
+		relation
+			Lease 1 (lowest) (fk)
+			Lease 2 (highest) (fk)
+			usage count
+			
+	Procedures
+		get related leases ( list of leases ) {
+			For each lease {
+				get top n most associated leases
+				make array of running sums of associations to each lease
+			}
+			return top n of the result set			
+		}
+		
+		Update leases (list of leases) {
+			for each lease{
+				if ( ! lease is in leases table ) {
+					add to table count of 1
+				}
+				else {
+				    update last use index
+				}
+			}
+			for each relation{
+				if (! relation is in relation table ){
+					add to table with value of 1
+				}
+				else {
+					increment by 1
+				}
+			}
+		}
+		

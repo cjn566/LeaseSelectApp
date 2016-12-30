@@ -1,0 +1,48 @@
+
+
+
+
+* {
+    border: 1px solid lightgray;
+}
+
+.content {
+    height: 100%;
+    width: 100%;
+}
+
+.app {
+    width: 780px;
+    margin: auto;
+    overflow: auto;
+}
+
+.suggestion:focus {
+    border-color: green;
+}
+
+.search-and-suggest,
+.accepted {
+    float: left;
+    width: 340px;
+    /*height: 500px;*/
+    margin: 15px;
+}
+
+.search {
+    width:200px;
+    margin:auto;
+}
+
+.slider {
+    display: block;
+    width: 95%;
+}
+
+.stale {
+    background-color: lightgray;
+}
+
+.fresh {
+    background-color: lightgreen;
+}
