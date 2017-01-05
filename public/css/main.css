@@ -2,9 +2,6 @@
 
 
 
-* {
-    border: 1px solid lightgray;
-}
 
 .content {
     height: 100%;
@@ -12,8 +9,6 @@
 }
 
 .app {
-    width: 780px;
-    margin: auto;
     overflow: auto;
 }
 
