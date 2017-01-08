@@ -13,7 +13,7 @@
 }
 
 .suggestion:focus {
-    border-color: green;
+    background-color: blue;
 }
 
 .search-and-suggest,
@@ -39,5 +39,5 @@
 }
 
 .fresh {
-    background-color: lightgreen;
+    background-color: #dbffd8;
 }

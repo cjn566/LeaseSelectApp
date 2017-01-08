@@ -1,15 +1,16 @@
 
-var ClipboardBtn = require('react-clipboard.js');
+import * as React from "react";
+let ClipboardBtn = require('react-clipboard.js');
 
-var Acceptance = function(props){
-    var toggleStale = function(e){
+let Acceptance = function (props) {
+    let toggleStale = function (e) {
         console.log("Toggling " + e.target.id);
         props.toggleStale(e.target.id);
     };
 
     return (
         <li className="item">
-            <div className={props.data.stale?"stale":"fresh"} onClick={toggleStale} id={props.id}>
+            <div className={props.data.stale?"stale":"fresh" + ""} onClick={toggleStale} id={props.id}>
                 {props.data.number}
             </div>
         </li>
@@ -17,10 +18,10 @@ var Acceptance = function(props){
 };
 
 // AcceptSet
-module.exports = function(props){
-    var copytext = props.data.filter(el => !el.stale).map(el => el.number).join('\n');
-    var enableButton = props.data.some(el => !el.stale);
-    return(
+export default function (props) {
+    let copytext = props.data.filter(el => !el.stale).map(el => el.number).join('\n');
+    let enableButton = props.data.some(el => !el.stale);
+    return (
         <div className="accepted">
             <ol>
                 {props.data.map((accept, i) => {

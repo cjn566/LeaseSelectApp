@@ -14,24 +14,15 @@ module.exports = {
             {
                 // Test for js or jsx files.
                 test: /\.tsx?$/,
-                exclude: /node_modules/,
+                //exclude: /node_modules/,
                 loader: 'awesome-typescript-loader',
                 query:
                 {
-                    presets:['react']
+                    presets:['es2015','react']
                 }
             }
         ],
-        preLoaders: [
-            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { test: /\.js$/, loader: "source-map-loader" }
-        ]
 
-    },
-    externals: {
-        // Don't bundle the 'react' npm package with the component.
-        'react': 'React',
-        'react-dom': 'ReactDOM'
     },
     resolve: {
         // Include empty string '' to resolve files by their explicit extension

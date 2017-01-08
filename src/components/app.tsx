@@ -1,24 +1,26 @@
 
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+//TODO how to bundle libraries so they dont have to be individually downloaded?
+
+import * as React        from "react";
+import * as ReactDOM     from "react-dom";
+
+import SearchBar   from './SearchBar';
+import SliderBlock from './sliderBlock';
+import AcceptedSet from './acceptSet';
+import Service     from '../appService';
+
+//require('bootstrap');
 
 
-let SearchBar = require('./searchBar');
-let SliderBlock = require('./sliderBlock');
-let AcceptedSet = require('./acceptSet');
-let Service = require('./appService');
-require('bootstrap');
-
-
-let Suggestion = function(props: any) {
-    let onClick = function(e){
+let Suggestion = function (props) {
+    let onClick = function (e) {
         props.acceptLease(props.data.number);
     };
     return (
         <button type="button" className="list-group-item suggestion" onClick={onClick}>
-            <span className="badge">
-                {props.idx}
-            </span>
+        <span className="badge">
+            {props.idx}
+        </span>
             {props.data.number}
         </button>
     )
@@ -43,28 +45,28 @@ let GroupSelectTool = React.createClass({
     filterText: "",
 
 
-    calcRelatedScores: function(){
+    calcRelatedScores: function () {
         let _app = this;
-        _app.relatedPool.forEach((el)=> {
+        _app.relatedPool.forEach((el) => {
             el.score = (((el.lastUse ) / _app.lastUseIdx) * _app.recentWeight)
                 + (((el.count ) / _app.mostUsed) * _app.mostWeight)
                 + (((el.assocs ) / _app.mostRelated) * _app.relatedWeight);
         });
     },
 
-    calcNonRelatedScores: function() {
+    calcNonRelatedScores: function () {
         let _app = this;
-        _app.suggestionPool.forEach((el)=> {
+        _app.suggestionPool.forEach((el) => {
             el.score = (((el.lastUse ) / _app.lastUseIdx) * _app.recentWeight)
                 + (((el.count ) / _app.mostUsed) * _app.mostWeight);
         });
     },
 
-    updateWeights: function(related, recent, most){
-        if(related != this.relatedWeight){
+    updateWeights: function (related, recent, most) {
+        if (related != this.relatedWeight) {
             this.relatedWeight = related;
         }
-        if(recent != this.recentWeight || most != this.mostWeight){
+        if (recent != this.recentWeight || most != this.mostWeight) {
             this.mostWeight = most;
             this.recentWeight = recent;
             this.calcNonRelatedScores();
@@ -73,34 +75,42 @@ let GroupSelectTool = React.createClass({
         this.setState({suggestionList: this.combineLists()});
     },
 
-    combineLists: function(){
+    combineLists: function () {
         return this.relatedPool
             .concat(this.suggestionPool)
-            .filter((el)=>{
-                return !this.relatedPool.some((el2)=>{
+            .filter((el) => {
+                return !this.relatedPool.some((el2) => {
                     return (el.number == el2.number && !el.assocs)
                 })
             })
-            .sort((a,b) => {return b.score - a.score})
-            .slice(0,this.suggestionCount);
+            .sort((a, b) => {
+                return b.score - a.score
+            })
+            .slice(0, this.suggestionCount);
     },
 
     // Filter the current set of available numbers on the text.
     // If the resulting set is less than the S
-    onTextChange: function(text) {
-        this.filterText = text;
+    onTextChange: function (allText: string) {
+        this.filterText = allText;
+
+        let text = allText.split('\n').slice(-1)[0];
+        console.log('filter text =' + text);
+
         let oldLen = this.prevTextLen;
         this.prevTextLen = text.length;
 
         // Filter the current set of condensed suggestions on the text
         let regEx = new RegExp(text);
-        let tempSuggestions = this.suggestionPool.filter((el)=> {
+        let tempSuggestions = this.suggestionPool.filter((el) => {
             return regEx.test(el.number);
         }).slice(0, this.suggestionCount);
 
-        let finish = ()=> {
+        let finish = () => {
             // Sort the pool by score
-            tempSuggestions.sort((a, b)=>{return b.score - a.score;});
+            tempSuggestions.sort((a, b) => {
+                return b.score - a.score;
+            });
 
             this.setState({
                 suggestionList: tempSuggestions
@@ -110,8 +120,8 @@ let GroupSelectTool = React.createClass({
         // If this text is longer that the previous text,
         // and the previous search returned less than the request amount,
         // don't bother searching. There wont be any new data.
-        if(text.length > oldLen){
-            if(this.depletedResults) {
+        if (text.length > oldLen) {
+            if (this.depletedResults) {
                 finish();
             }
             else {
@@ -127,12 +137,12 @@ let GroupSelectTool = React.createClass({
                             omissions: this.omissions,
                             filterText: text
                         },
-                        (data)=> {
+                        (data) => {
 
                             // Indicate if the server depleted all suggestions for this  string
                             this.depletedResults = data.length < deficit;
 
-                            if(data.length){
+                            if (data.length) {
 
                                 // Add the new data to the suggestions and the suggestion pool
                                 tempSuggestions = tempSuggestions.concat(data);
@@ -140,7 +150,7 @@ let GroupSelectTool = React.createClass({
 
                                 // Remove extra suggestions from the pool
                                 let tooMany = Math.min(this.poolMax - this.suggestionPool.length, 0);
-                                if (tooMany){
+                                if (tooMany) {
                                     this.suggestionPool.splice(tooMany)
                                 }
 
@@ -154,64 +164,65 @@ let GroupSelectTool = React.createClass({
                 }
             }
         }
-        else{
+        else {
             this.depletedResults = false;
             finish();
         }
     },
 
     // Remove already accepted leases from the suggestion set
-    cleanSuggestions: function(){
+    cleanSuggestions: function () {
         //let before = this.suggestionPool.length;
-        this.suggestionPool = this.suggestionPool.filter(( suggestion )=> {
-            return !this.state.accepteds.some( (accept)=>{
+        this.suggestionPool = this.suggestionPool.filter((suggestion) => {
+            return !this.state.accepteds.some((accept) => {
                 return suggestion.number === accept.number;
-            } );
+            });
         });
     },
 
     // Add a lease to the accepted set, clean the suggestion set, and
-    acceptLease: function(text){
+    acceptLease: function (text) {
         let that = this;
         let set = text.split('\n');
 
-        set.forEach(function(text){
+        set.forEach(function (text) {
             // Check if is blank or it has already been accepted
-            if(!text || that.state.accepteds.some((el)=>{
+            if (text && !that.state.accepteds.some((el) => {
                     return el.number === text;
-                })){
-                return;
+                })) {
+                that.state.accepteds.unshift({number: text, stale: false});
             }
-            that.state.accepteds.unshift({number: text, stale: false});
         });
         that.checkOverflowAccepteds();
         that.cleanSuggestions();
         that.getRelations();
-        that.refs.search.clear();
+        that.filterText="";
     },
 
-    checkOverflowAccepteds: function(){
+    checkOverflowAccepteds: function () {
         let acc = this.state.accepteds;
-        if( (acc.length > this.acceptMax)
-            && acc[acc.length-1].stale){
+        if ((acc.length > this.acceptMax)
+            && acc[acc.length - 1].stale) {
             acc.pop();
         }
     },
 
-    toggleStale: function(idx){
-        this.state.accepteds[idx].stale ^= true;
-        this.state.accepteds.sort((a, b)=>{return b.stale? -1:1});
+    toggleStale: function (idx) {
+        this.state.accepteds[idx].stale ^= 1;
+        this.state.accepteds.sort((a, b) => {
+            return b.stale ? -1 : 1
+        });
         this.checkOverflowAccepteds();
         this.cleanSuggestions();
         this.getRelations();
     },
 
-    getRelations: function(){
+    getRelations: function () {
         let _app = this;
-        let fin = function(){
+        let fin = function () {
 
             // Find most associations
-            _app.mostRelated = _app.relatedPool.reduce((max, curr)=> {
+            _app.mostRelated = _app.relatedPool.reduce((max, curr) => {
                 return Math.max(max, curr.assocs)
             }, -Infinity);
 
@@ -221,29 +232,29 @@ let GroupSelectTool = React.createClass({
         };
 
         let filteredByStale = this.state.accepteds.filter(el => !el.stale);
-        if(filteredByStale.length) {
+        if (filteredByStale.length) {
             Service.getRelatedData(
                 {
                     list: filteredByStale.map(el => el.number),
                     limit: this.suggestionCount,
                 },
-                (data)=> {
+                (data) => {
                     this.relatedPool = data;
                     fin();
                 }
             );
         }
-        else{
-            this.relatedPool =[];
+        else {
+            this.relatedPool = [];
             fin();
         }
     },
 
     // Use the current set of accepted leases (create associations)
-    commit: function(){
+    commit: function () {
         // If there were no leases to commit, return
         let filteredByStale = this.state.accepteds.filter(el => !el.stale);
-        if(!filteredByStale.length){
+        if (!filteredByStale.length) {
             alert("Nothing to commit");
             return;
         }
@@ -251,39 +262,40 @@ let GroupSelectTool = React.createClass({
         // Filter out leases that were stale TODO: only filter leases when exceeding accept max
         this.state.accepteds = filteredByStale;
 
-        Service.doPOST("/commit", {
-            'list':this.state.accepteds.map(el => el.number)
-        }, (data)=>{
+        Service.commit(
+            {
+                'list': this.state.accepteds.map(el => el.number)
+            },
+            (data) => {
+                // Mark all leases as stale
+                this.state.accepteds.forEach((el) => {
+                    el.stale = true;
+                });
+                this.forceUpdate();
 
-            // Mark all leases as stale
-            this.state.accepteds.forEach((el)=>{
-                el.stale = true;
-            });
-            this.forceUpdate();
-
-            Service.getMaxValues({},(data)=>{
-                this.lastUseIdx = data.lastUseIdx;
-                this.mostUsed = data.mostUsed;
+                Service.getMaxValues({}, (data) => {
+                    this.lastUseIdx = data.lastUseIdx;
+                    this.mostUsed = data.mostUsed;
             });
         })
     },
 
-    handleHotkey: function(e){
+    handleHotkey: function (e: KeyboardEvent) {
         let num = parseInt(e.key);
-        if(num >= 1 && num <= this.state.suggestions.length){
-            this.acceptLease(this.state.suggestions[num - 1].number)
+        if (num >= 1 && num <= this.state.suggestionList.length && e.altKey) {
+            this.acceptLease(this.state.suggestionList[num - 1].number)
         }
     },
 
     // Update the ommission list
-    updateOmissions: function(){
+    updateOmissions: function () {
         // We don't want anything from the accepted list or the suggestion pool;
         this.omissions = this.suggestionPool.map(el => el.number);
         this.omissions = this.omissions.concat(this.state.accepteds.map(el => el.number));
     },
 
     // Initialize the App by setting the state to all empty arrays
-    getInitialState: function() {
+    getInitialState: function () {
         return {
             suggestionList: [],
             accepteds: [],
@@ -291,31 +303,31 @@ let GroupSelectTool = React.createClass({
     },
 
     // Initialize the App by getting the most used and recently used leases
-    componentDidMount: function() {
+    componentDidMount: function () {
         Service.getLeases({
             limit: this.suggestionCount,
-        },(data)=>{
+        }, (data) => {
             this.suggestionPool = data;
             this.setState({
                 suggestionList: this.suggestionPool.slice(0, this.suggestionCount)
             });
         });
         this.getMaxValues();
-        //document.addEventListener('keydown',this.handleHotkey,false);
+        document.addEventListener('keydown',this.handleHotkey,false);
     },
-    getMaxValues: function(){
-        Service.getMaxValues({},(data)=>{
+    getMaxValues: function () {
+        Service.getMaxValues({}, (data) => {
             this.lastUseIdx = data.lastUseIdx;
             this.mostUsed = data.mostUsed;
         });
     },
-    render: function(){
+    render: function () {
         let suggestions = this.state.suggestionList.map((result, i) => {
             return <Suggestion key={i} data={result} idx={i+1} acceptLease={this.acceptLease}/>
         });
-        return(
+        return (
             <div className="app col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 col-xs-12">
-                <SearchBar acceptLease={this.acceptLease} handleTextChange={this.onTextChange} ref="search"/>
+                <SearchBar acceptLease={this.acceptLease} handleTextChange={this.onTextChange} text={this.filterText}/>
 
                 <div className="search-and-suggest">
                     <div className="suggest">
@@ -323,9 +335,9 @@ let GroupSelectTool = React.createClass({
                             {suggestions}
                         </div>
                         {!this.state.suggestionList.length &&
-                            <h2>
-                                No Matches
-                            </h2>
+                        <h2>
+                            No Matches
+                        </h2>
                         }
                     </div>
 
@@ -340,9 +352,15 @@ let GroupSelectTool = React.createClass({
             </div>
         );
     }
-})
+});
 
 ReactDOM.render(
     <GroupSelectTool/>,
     document.getElementById('content')
 );
+
+
+
+
+// WEBPACK FOOTER //
+// ./src/components/app.tsx
