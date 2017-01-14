@@ -4,24 +4,25 @@
 import * as React        from "react";
 import * as ReactDOM     from "react-dom";
 
-import SearchBar   from './SearchBar';
+import SearchBar   from './searchBar';
 import SliderBlock from './sliderBlock';
 import AcceptedSet from './acceptSet';
 import Service     from '../appService';
+import ScoredItem  from '../ScoredItem';
 
 //require('bootstrap');
 
 
 let Suggestion = function (props) {
     let onClick = function (e) {
-        props.acceptLease(props.data.number);
+        props.acceptLease(props.data.name);
     };
     return (
         <button type="button" className="list-group-item suggestion" onClick={onClick}>
         <span className="badge">
             {props.idx}
         </span>
-            {props.data.number}
+            {props.data.name}
         </button>
     )
 };
@@ -48,17 +49,17 @@ let GroupSelectTool = React.createClass({
     calcRelatedScores: function () {
         let _app = this;
         _app.relatedPool.forEach((el) => {
-            el.score = (((el.lastUse ) / _app.lastUseIdx) * _app.recentWeight)
-                + (((el.count ) / _app.mostUsed) * _app.mostWeight)
-                + (((el.assocs ) / _app.mostRelated) * _app.relatedWeight);
+            el.score = (((el.lastUseIdx ) / _app.lastUseIdx) * _app.recentWeight)
+                + (((el.totalUses ) / _app.mostUsed) * _app.mostWeight)
+                + (((el.associations ) / _app.mostRelated) * _app.relatedWeight);
         });
     },
 
     calcNonRelatedScores: function () {
         let _app = this;
         _app.suggestionPool.forEach((el) => {
-            el.score = (((el.lastUse ) / _app.lastUseIdx) * _app.recentWeight)
-                + (((el.count ) / _app.mostUsed) * _app.mostWeight);
+            el.score = (((el.lastUseIdx ) / _app.lastUseIdx) * _app.recentWeight)
+                + (((el.totalUses ) / _app.mostUsed) * _app.mostWeight);
         });
     },
 
@@ -80,7 +81,7 @@ let GroupSelectTool = React.createClass({
             .concat(this.suggestionPool)
             .filter((el) => {
                 return !this.relatedPool.some((el2) => {
-                    return (el.number == el2.number && !el.assocs)
+                    return (el.name == el2.name && !el.associations)
                 })
             })
             .sort((a, b) => {
@@ -93,6 +94,7 @@ let GroupSelectTool = React.createClass({
     // If the resulting set is less than the S
     onTextChange: function (allText: string) {
         this.filterText = allText;
+        this.forceUpdate();
 
         let text = allText.split('\n').slice(-1)[0];
         console.log('filter text =' + text);
@@ -103,7 +105,7 @@ let GroupSelectTool = React.createClass({
         // Filter the current set of condensed suggestions on the text
         let regEx = new RegExp(text);
         let tempSuggestions = this.suggestionPool.filter((el) => {
-            return regEx.test(el.number);
+            return regEx.test(el.name);
         }).slice(0, this.suggestionCount);
 
         let finish = () => {
@@ -137,7 +139,7 @@ let GroupSelectTool = React.createClass({
                             omissions: this.omissions,
                             filterText: text
                         },
-                        (data) => {
+                        (data: Item[]) => {
 
                             // Indicate if the server depleted all suggestions for this  string
                             this.depletedResults = data.length < deficit;
@@ -175,7 +177,7 @@ let GroupSelectTool = React.createClass({
         //let before = this.suggestionPool.length;
         this.suggestionPool = this.suggestionPool.filter((suggestion) => {
             return !this.state.accepteds.some((accept) => {
-                return suggestion.number === accept.number;
+                return suggestion.name === accept.name;
             });
         });
     },
@@ -188,9 +190,9 @@ let GroupSelectTool = React.createClass({
         set.forEach(function (text) {
             // Check if is blank or it has already been accepted
             if (text && !that.state.accepteds.some((el) => {
-                    return el.number === text;
+                    return el.name === text;
                 })) {
-                that.state.accepteds.unshift({number: text, stale: false});
+                that.state.accepteds.unshift({name: text, stale: false});
             }
         });
         that.checkOverflowAccepteds();
@@ -207,8 +209,8 @@ let GroupSelectTool = React.createClass({
         }
     },
 
-    toggleStale: function (idx) {
-        this.state.accepteds[idx].stale ^= 1;
+    toggleStale: function (index: number) {
+        this.state.accepteds[index].stale ^= 1;
         this.state.accepteds.sort((a, b) => {
             return b.stale ? -1 : 1
         });
@@ -223,7 +225,7 @@ let GroupSelectTool = React.createClass({
 
             // Find most associations
             _app.mostRelated = _app.relatedPool.reduce((max, curr) => {
-                return Math.max(max, curr.assocs)
+                return Math.max(max, curr.associations)
             }, -Infinity);
 
             // Find weighted score for each lease
@@ -235,7 +237,7 @@ let GroupSelectTool = React.createClass({
         if (filteredByStale.length) {
             Service.getRelatedData(
                 {
-                    list: filteredByStale.map(el => el.number),
+                    list: filteredByStale.map(el => el.name),
                     limit: this.suggestionCount,
                 },
                 (data) => {
@@ -264,7 +266,7 @@ let GroupSelectTool = React.createClass({
 
         Service.commit(
             {
-                'list': this.state.accepteds.map(el => el.number)
+                'list': this.state.accepteds.map(el => el.name)
             },
             (data) => {
                 // Mark all leases as stale
@@ -283,15 +285,15 @@ let GroupSelectTool = React.createClass({
     handleHotkey: function (e: KeyboardEvent) {
         let num = parseInt(e.key);
         if (num >= 1 && num <= this.state.suggestionList.length && e.altKey) {
-            this.acceptLease(this.state.suggestionList[num - 1].number)
+            this.acceptLease(this.state.suggestionList[num - 1].name)
         }
     },
 
     // Update the ommission list
     updateOmissions: function () {
         // We don't want anything from the accepted list or the suggestion pool;
-        this.omissions = this.suggestionPool.map(el => el.number);
-        this.omissions = this.omissions.concat(this.state.accepteds.map(el => el.number));
+        this.omissions = this.suggestionPool.map(el => el.name);
+        this.omissions = this.omissions.concat(this.state.accepteds.map(el => el.name));
     },
 
     // Initialize the App by setting the state to all empty arrays

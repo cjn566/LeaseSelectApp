@@ -1,6 +1,6 @@
 "use strict";
 
-import Item from './item';
+import Item from '../item';
 declare let require: any;
 declare let __dirname: any;
 
@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use('/', express.static(path.join(__dirname, 'public')));
 
-let db = new sqlite3.Database('leases');
+let db = new sqlite3.Database('group-select');
 let lastUseIdx = 0;
 let mostUsed = 0;
 
@@ -26,12 +26,12 @@ let logLastUseIdx = () => {
     console.log("Current Last Use Index: " + lastUseIdx);
 };
 
-// Return a set of relations that contain the given lease number in either of the columns
-let getRelationsForLease = function (lease, limit, callback) {
+// Return a set of relations that contain the given element name in either of the columns
+let getRelationsForLease = function (element, limit, callback) {
     db.all(
-        "SELECT * FROM relation WHERE first = $query OR second = $query ORDER BY count DESC LIMIT $limit",
+        "SELECT * FROM relation WHERE first = $query OR second = $query ORDER BY totalUses DESC LIMIT $limit",
         {
-            $query: lease,
+            $query: element,
             $limit: limit
         },
         function (err, rows) {
@@ -45,43 +45,43 @@ let getRelationsForLease = function (lease, limit, callback) {
     );
 };
 
-// API: Receive a list of leases, return a list of most related leases
+// API: Receive a list of element, return a list of most related elements
 app.get('/getRelated', function (req, res) {
     if (!req.query.list) {
         res.json([]);
     }
     let ret = [];
-    let finalists = [];
+    let finalists: any = [];
     let rem = req.query.list.length;
     let limit = req.query.limit || MAX_ROWS;
     let acceptList = req.query.list;
 
     console.log("list: ", req.query.list);
 
-    // For each lease supplied...
+    // For each element supplied...
     acceptList.forEach(function (accept) {
 
         // Get n relations, sorted by most frequently related
         getRelationsForLease(accept, limit, function (rows) {
 
-            // For each relation to the lease...
+            // For each relation to the element...
             rows.forEach(function (row) {
 
-                // Get the related lease number
+                // Get the related element name
                 let relatedLease = (accept === row.first) ? row.second : row.first;
-                let existingFinalist = finalists.find((lease) => {
-                    return lease.number === relatedLease
+                let existingFinalist = finalists.find((element) => {
+                    return element.name === relatedLease
                 });
 
-                // If the related lease is not in the finalists already, add it with the relation count
+                // If the related element is not in the finalists already, add it with the relation count
                 if (!existingFinalist) {
                     finalists.push({
-                        number: relatedLease,
+                        name: relatedLease,
                         numRelations: row.count,
                     });
                 }
 
-                // Otherwise, the related lease is found in the finalists, so just increment its count
+                // Otherwise, the related element is found in the finalists, so just increment its count
                 else {
                     existingFinalist.numRelations += row.count;
                 }
@@ -89,20 +89,20 @@ app.get('/getRelated', function (req, res) {
 
             console.log("finalists after each loop: ", finalists);
 
-            // When there are no more leases to process...
+            // When there are no more elements to process...
             if (!--rem) {
 
                 // If there were no relations
                 if (!finalists.length) {
-                    console.log("no related leases. returning: ", ret);
+                    console.log("no related elements. returning: ", ret);
                     res.json(ret);
                     return;
                 }
 
-                // Filter out the already accepted leases from the finalists
+                // Filter out the already accepted elements from the finalists
                 finalists = finalists.filter(function (finalist) {
                     return !acceptList.some((accept) => {
-                        return finalist.number === accept;
+                        return finalist.name === accept;
                     });
 
                     // and truncates to {limit} finalists
@@ -110,13 +110,13 @@ app.get('/getRelated', function (req, res) {
 
                 console.log("finalists after processing: ", finalists);
 
-                // Get a list of lease objects from the finalists
+                // Get a list of element objects from the finalists
                 let omissions = req.body.omissions || [];
                 let omitStr = omissions.map(() => '?').join(',');
                 rem = finalists.length;
                 finalists.forEach((el) => {
-                    let params = [el.number].concat(omissions);
-                    db.get("SELECT * FROM lease WHERE number = ? AND number NOT IN (" + omitStr + ")", params, function (err, item) {
+                    let params = [el.name].concat(omissions);
+                    db.get("SELECT * FROM element WHERE name = ? AND name NOT IN (" + omitStr + ")", params, function (err, item) {
                         if (item) {
                             ret.push(new Item(item.name, item.totalUses, item.lastUseIdx, el.numRelations));
                         }
@@ -131,7 +131,7 @@ app.get('/getRelated', function (req, res) {
     });
 });
 
-// API: Get top {limit} of the most used leases
+// API: Get top {limit} of the most used elements
 app.get('/getLeases', function (req, res) {
     let omissions = req.query.omissions || [];
     let limit = parseInt(req.query.limit) || MAX_ROWS;
@@ -150,7 +150,7 @@ app.get('/getLeases', function (req, res) {
         limit
     ]);
 
-    db.all("SELECT * FROM lease WHERE number NOT IN (" + omitPlaceholders + ") AND number LIKE ? ORDER BY count DESC LIMIT ?",
+    db.all("SELECT * FROM element WHERE name NOT IN (" + omitPlaceholders + ") AND name LIKE ? ORDER BY totalUses DESC LIMIT ?",
         SQLparams,
         function (err, mostRows) {
             if (err) {
@@ -166,11 +166,11 @@ app.get('/getLeases', function (req, res) {
             else {
                 // Append ommissions with new data
                 omissions = omissions.concat(mostRows.map((el) => {
-                    return el.number
+                    return el.name
                 }));
                 omitPlaceholders = omissions.map(() => '?').join(',');
                 SQLparams = omissions.concat(SQLparams.slice(-2));
-                db.all("SELECT * FROM lease WHERE number NOT IN (" + omitPlaceholders + ") AND number LIKE ? ORDER BY lastUse DESC LIMIT ?",
+                db.all("SELECT * FROM element WHERE name NOT IN (" + omitPlaceholders + ") AND name LIKE ? ORDER BY lastUseIdx DESC LIMIT ?",
                     SQLparams,
                     function (err, recentRows) {
                         if (err) {
@@ -184,13 +184,13 @@ app.get('/getLeases', function (req, res) {
         });
 });
 
-// Upsert a lease (create if it doesn't exist, or update it's last use index if it does)
-let addLeaseToDB = function (lease) {
+// Upsert a element (create if it doesn't exist, or update it's last use index if it does)
+let addLeaseToDB = function (element) {
     db.run(
-        "INSERT OR REPLACE INTO lease(lastUse, count, number) VALUES ( $lastUse, COALESCE((SELECT count+1 FROM lease WHERE number=$number), 1), $number);",
+        "INSERT OR REPLACE INTO element(lastUseIdx, totalUses, name) VALUES ( $lastUse, COALESCE((SELECT totalUses+1 FROM element WHERE name=$number), 1), $number);",
         {
             $lastUse: lastUseIdx,
-            $number: lease
+            $number: element
         });
 };
 
@@ -204,7 +204,7 @@ let addRelationToDB = function (first, second) {
         });
 };
 
-// API: Process all lease numbers that were used (upsert all leases and all relations between them)
+// API: Process all elements that were used (upsert all elements and all relations between them)
 app.post('/commit', function (req, res) {
     let list = req.body.list;
     list.sort();
@@ -230,35 +230,49 @@ app.get('/getMaxValues', function (req, res) {
 });
 
 // Initialize the last use index.
-db.get("SELECT max(lastUse) AS max FROM lease", {}, function (err, data) {
+db.get("SELECT max(lastUseIdx) AS max FROM element", {}, function (err, data) {
+    if(err) {
+        console.error(err);
+        return;
+    }
     lastUseIdx = data.max;
     logLastUseIdx();
 });
 
 // Initialize the most used index.
 let updateMostUsed = function () {
-    db.get("SELECT max(count) AS max FROM lease", {}, function (err, data) {
+    db.get("SELECT max(totalUses) AS max FROM element", {}, function (err, data) {
+        if(err) {
+            console.error(err);
+            return;
+        }
         mostUsed = data.max;
         console.log("Currently most used: " + mostUsed);
     });
 };
 
-
-let i;
-for(i=0; i<1000000; i++){
-    db.run(
-        "INSERT INTO lease(lastUse, count, number) VALUES ( $lastUse, $count, $number);",
-        {
-            $lastUse: 0,
-            $count: 0,
-            $number: i
-        });
-    if(!(i%50000))
+/*
+var popdb = function (i) {
+    db.run("INSERT INTO element(lastUseIdx, totalUses, name) VALUES ( $lastUse, totalUses, $number);", {
+        $lastUse: 0,
+        $totalUses: 0,
+        $number: i.toString()
+    }, function (err) {
+        if(err){
+            console.error(err);
+        }
         console.log(i);
-}
+        if (i < 100000) {
+            popdb(i + 1);
+        }
+        else {
+            // Start th asdasdae server
+        }
+    });
+};
+popdb(1);
 
-
+*/
 updateMostUsed();
-// Start the server
-app.listen(3000);
 console.log("READY");
+app.listen(3000);

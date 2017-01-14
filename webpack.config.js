@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-    entry: './src/components/app.tsx',
+    entry: './src/client/components/app.tsx',
     output: {
         // Output the bundled file.
         path: './public',
@@ -14,7 +14,7 @@ module.exports = {
             {
                 // Test for js or jsx files.
                 test: /\.tsx?$/,
-                //exclude: /node_modules/,
+                exclude: /node_modules/,
                 loader: 'awesome-typescript-loader',
                 query:
                 {

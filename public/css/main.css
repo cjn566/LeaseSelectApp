@@ -19,7 +19,7 @@
 .search-and-suggest,
 .accepted {
     float: left;
-    width: 340px;
+    /* width: 340px; */
     /*height: 500px;*/
     margin: 15px;
 }

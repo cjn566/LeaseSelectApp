@@ -1,8 +1,15 @@
 
 import * as React from "react";
+import ScoredItem from '../ScoredItem'
 let ClipboardBtn = require('react-clipboard.js');
 
-let Acceptance = function (props) {
+interface Iprops {
+    toggleStale: (index: number)=>void,
+    id: number,
+    data: ScoredItem
+}
+
+let Acceptance = function (props: Iprops) {
     let toggleStale = function (e) {
         console.log("Toggling " + e.target.id);
         props.toggleStale(e.target.id);
@@ -11,7 +18,7 @@ let Acceptance = function (props) {
     return (
         <li className="item">
             <div className={props.data.stale?"stale":"fresh" + ""} onClick={toggleStale} id={props.id}>
-                {props.data.number}
+                {props.data.name}
             </div>
         </li>
     );
