@@ -17,7 +17,7 @@ let Acceptance = function (props: Iprops) {
 
     return (
         <li className="item">
-            <div className={props.data.stale?"stale":"fresh" + ""} onClick={toggleStale} id={props.id}>
+            <div className="" onClick={toggleStale} id={props.id.toString()}>
                 {props.data.name}
             </div>
         </li>
