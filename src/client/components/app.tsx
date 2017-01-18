@@ -46,6 +46,8 @@ let GroupSelectTool = React.createClass({
     filterText: "",
 
 
+    // destination.concat(target.splice(start,1));
+
     calcRelatedScores: function () {
         let _app = this;
         _app.relatedPool.forEach((el) => {

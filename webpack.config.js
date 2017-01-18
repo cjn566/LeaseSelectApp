@@ -29,6 +29,6 @@ module.exports = {
         // (e.g. require('./somefile.ext')).
         // Include '.js', '.jsx' to resolve files by these implicit extensions
         // (e.g. require('underscore')).
-        extensions: ['', '.js', ".webpack.js", ".web.js", ".ts", ".tsx"]
+        extensions: ['.js', ".webpack.js", ".web.js", ".ts", ".tsx"]
     }
 };

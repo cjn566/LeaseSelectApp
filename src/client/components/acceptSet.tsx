@@ -1,12 +1,12 @@
 
 import * as React from "react";
-import ScoredItem from '../ScoredItem'
+import Item from '../../item'
 let ClipboardBtn = require('react-clipboard.js');
 
 interface Iprops {
     toggleStale: (index: number)=>void,
     id: number,
-    data: ScoredItem
+    data: Item
 }
 
 let Acceptance = function (props: Iprops) {
