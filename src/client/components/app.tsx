@@ -1,4 +1,6 @@
 
+/// <reference path="../interfaces.d.ts"/>
+
 //TODO how to bundle libraries so they dont have to be individually downloaded?
 
 import * as React        from "react";
@@ -10,10 +12,11 @@ import AcceptedSet from './acceptSet';
 import Suggestion from './suggestion';
 import Service     from '../appService';
 import Item from "../../item";
+import {IAppProps, IAppState} from "../interfaces";
 
 //require('bootstrap');
 
-class GroupSelectTool extends React.Component{
+class GroupSelectTool extends React.Component<IAppProps,IAppState>{
     prevTextLen: number = 0;
     depletedResults: boolean = false;
     omissions: string[] = [];
@@ -41,9 +44,9 @@ class GroupSelectTool extends React.Component{
 
     calcScoresAndSort = function () {
         this.suggestionPool.forEach((el) => {
-            el.score = (((el.lastUseIdx ) / _app.lastUseIdx) * _app.recentWeight)
-                + (((el.totalUses ) / _app.mostUsed) * _app.mostWeight)
-                + (((el.associations ) / _app.mostRelated) * _app.relatedWeight);
+            el.score = (((el.lastUseIdx ) / this.lastUseIdx) * this.recentWeight)
+                + (((el.totalUses ) / this.mostUsed) * this.mostWeight)
+                + (((el.associations ) / this.mostRelated) * this.relatedWeight);
         });
         this.suggestionPool.sort((a, b) => {
             return b.score - a.score
@@ -307,7 +310,7 @@ class GroupSelectTool extends React.Component{
             this.mostUsed = data.mostUsed;
         });
     };
-    render= function () {
+    public render() {
         let suggestions = this.state.suggestionList.map((result, i) => {
             return <Suggestion key={i} data={result} idx={i+1} acceptLease={this.acceptLease}/>
         });
@@ -338,7 +341,7 @@ class GroupSelectTool extends React.Component{
             </div>
         );
     }
-};
+}
 
 ReactDOM.render(
     <GroupSelectTool/>,

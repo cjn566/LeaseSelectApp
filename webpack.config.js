@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-    entry: './src/client/components/app.tsx',
+    entry: './src/client/components/app',
     output: {
         // Output the bundled file.
         path: './public',
