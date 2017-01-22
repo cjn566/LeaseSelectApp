@@ -3,7 +3,7 @@
     "outDir": "./dist/",
     "noImplicitAny": false,
     "jsx": "react",
-    "target": "es6",
+    "target": "es5",
     "sourceMap": true,
     "diagnostics": false,
     "listFiles": true,
@@ -13,8 +13,8 @@
   "awesomeTypescriptLoaderOptions":{
 
   },
-  "include":[
-    "./src/item.ts"
+  "include": [
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules"

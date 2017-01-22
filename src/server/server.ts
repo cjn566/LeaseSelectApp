@@ -1,5 +1,4 @@
 "use strict";
-
 import Item from '../item';
 declare let require: any;
 declare let __dirname: any;

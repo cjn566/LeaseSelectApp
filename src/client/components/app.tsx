@@ -20,7 +20,8 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
     prevTextLen: number = 0;
     depletedResults: boolean = false;
     omissions: string[] = [];
-    suggestionPool: Item[];
+    suggestionPool: Item[] = [];
+    relatedPool: Item[] = [];
     suggestionCount: number = 10;
     acceptMax: number = 10;
     poolMax: number = 100;
@@ -35,6 +36,10 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
 
     constructor(props){
         super(props);
+        this.state = {
+            suggestionList: [],
+            accepteds: [],
+        };
 
         this.calcScoresAndSort = this.calcScoresAndSort.bind(this);
         this.updateWeights = this.updateWeights.bind(this);
@@ -281,14 +286,6 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
         // We don't want anything from the accepted list or the suggestion pool;
         this.omissions = this.suggestionPool.map(el => el.name);
         this.omissions = this.omissions.concat(this.state.accepteds.map(el => el.name));
-    };
-
-    // Initialize the App by setting the state to all empty arrays
-    getInitialState= function () {
-        return {
-            suggestionList: [],
-            accepteds: [],
-        };
     };
 
     // Initialize the App by getting the most used and recently used leases
