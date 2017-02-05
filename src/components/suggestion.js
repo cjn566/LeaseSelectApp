@@ -1,6 +1,4 @@
 
-import * as React from "react";
-
 export default function (props) {
     let onClick = function (e) {
         props.acceptLease(props.data.name);

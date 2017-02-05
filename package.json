@@ -5,19 +5,30 @@
   "main": "public/main.js",
   "scripts": {
     "start": "node server.js",
-    "build": "webpack --progress --display-error-details",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "node compile.js"
   },
   "author": "Colten Nye",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^6.0.58",
     "awesome-typescript-loader": "^3.0.0-beta.17",
+    "babel-cli": "^6.22.2",
     "babel-core": "^5.8.23",
     "babel-loader": "^5.3.2",
+    "babel-plugin-transform-class-properties": "^6.22.0",
+    "babel-preset-latest": "^6.22.0",
+    "babel-preset-react": "^6.22.0",
+    "babelify": "^7.3.0",
+    "browserify": "^14.0.0",
+    "gulp": "^3.9.1",
+    "gulp-inject": "^4.2.0",
+    "gulp-jscs": "^4.0.0",
+    "jshint-stylish": "^2.2.1",
+    "nodemon": "^1.11.0",
     "source-map-loader": "^0.1.5",
     "typescript": "^2.1.4",
-    "webpack": "^2.2.0"
+    "webpack": "^2.2.0",
+    "wiredep": "^4.0.0"
   },
   "dependencies": {
     "@types/react": "^0.14.55",
@@ -26,9 +37,12 @@
     "babel-core": "^6.21.0",
     "babel-loader": "^6.2.10",
     "body-parser": "^1.13.3",
+    "bower": "^1.8.0",
     "express": "^4.13.3",
     "fs": "0.0.1-security",
+    "gulp-jshint": "^2.0.4",
     "jquery": "^3.1.1",
+    "jshint": "^2.9.4",
     "react": "^15.4.2",
     "react-dom": "^15.4.2"
   }

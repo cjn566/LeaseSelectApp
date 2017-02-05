@@ -1,12 +1,5 @@
-import * as React from "react";
 
-interface Iprops {
-    handleTextChange: (text: string)=>void,
-    acceptLease: (text: string)=>void,
-    text: string
-}
-
-export default (props: Iprops) => {
+export default function (props) {
     let handleTextChange = function(e){
         props.handleTextChange(e.target.value);
     };

@@ -1,6 +1,4 @@
 
-declare let $:any;
-
 let doPOST = (url, options, callback) => {
     $.ajax({
         type: "POST",
@@ -44,7 +42,7 @@ export default {
         doGET('/getMaxValues', options, callback);
     },
 
-    commit: (options, callback) =>{
+    commit: (options, callback) => {
         doPOST('/commit', options, callback);
     }
-};
+}

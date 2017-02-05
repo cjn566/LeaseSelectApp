@@ -1,20 +1,13 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "./",
     "noImplicitAny": false,
-    "jsx": "react",
     "target": "es5",
     "sourceMap": true,
-    "diagnostics": false,
-    "listFiles": true,
-    "listEmittedFiles": true,
-    "watch": false
-  },
-  "awesomeTypescriptLoaderOptions":{
-
+    "diagnostics": true
   },
   "include": [
-    "./src/**/*"
+    "./src/server.ts"
   ],
   "exclude": [
     "node_modules"

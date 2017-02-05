@@ -1,15 +1,7 @@
 
-import * as React from "react";
-import Item from '../../item'
 let ClipboardBtn = require('react-clipboard.js');
 
-interface Iprops {
-    toggleStale: (index: number)=>void,
-    id: number,
-    data: Item
-}
-
-let Acceptance = function (props: Iprops) {
+let Acceptance = function (props) {
     let toggleStale = function (e) {
         console.log("Toggling " + e.target.id);
         props.toggleStale(e.target.id);

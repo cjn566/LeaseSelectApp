@@ -1,9 +1,7 @@
 "use strict";
-import Item from '../item';
-declare let require: any;
-declare let __dirname: any;
 
 const MAX_ROWS = 50;
+let port = 3000;
 
 let fs = require('fs');
 let path = require('path');
@@ -14,7 +12,11 @@ let app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-app.use('/', express.static(path.join(__dirname, 'public')));
+app.use('/', express.static(path.join(__dirname, '/public')));
+
+app.get('/', function (req, res) {
+    console.log("HIT")
+})
 
 let db = new sqlite3.Database('group-select');
 let lastUseIdx = 0;
@@ -80,7 +82,7 @@ app.get('/getRelated', function (req, res) {
                     });
                 }
 
-                // Otherwise, the related element is found in the finalists, so just increment its count
+                // Otherwise, the related element is found in the finalists, so just increment its count AAA
                 else {
                     existingFinalist.numRelations += row.count;
                 }
@@ -117,7 +119,7 @@ app.get('/getRelated', function (req, res) {
                     let params = [el.name].concat(omissions);
                     db.get("SELECT * FROM element WHERE name = ? AND name NOT IN (" + omitStr + ")", params, function (err, item) {
                         if (item) {
-                            ret.push(new Item(item.name, item.totalUses, item.lastUseIdx, el.numRelations));
+                            ret.push(item);
                         }
                         if (!--rem) {
                             res.json(ret);
@@ -136,11 +138,7 @@ app.get('/getLeases', function (req, res) {
     let limit = parseInt(req.query.limit) || MAX_ROWS;
 
     let finish = function (results) {
-        let response: Item[] = [];
-        results.forEach((el)=>{
-            response.push(new Item(el.name, el.totalUses, el.lastUseIdx));
-        });
-        res.json(response);
+        res.json(results);
     };
 
     let omitPlaceholders = omissions.map(() => '?').join(',');
@@ -274,4 +272,4 @@ popdb(1);
 */
 updateMostUsed();
 console.log("READY");
-app.listen(3000);
+app.listen(port);

@@ -1,7 +1,5 @@
 
-import * as React from "react";
-import Timer = NodeJS.Timer;
-
+//import {Timer} from 'NodeJS.Timer';
 
 var Slider = function (props) {
     return (
@@ -22,18 +20,9 @@ var Slider = function (props) {
     );
 };
 
-interface props {
-    updateWeights: (relations: number, recent: number, totalUse: number) => void
-};
 
-interface state {
-    relations: number,
-    recent: number,
-    totalUse: number
-};
-
-export default class extends React.Component<props, state>{
-    timeoutID: number;//NodeJS.Timer;
+export default class extends  React.Component{
+    timeoutID;
 
     constructor(props){
         super(props);

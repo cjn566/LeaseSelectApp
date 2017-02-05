@@ -1,48 +1,50 @@
+import {Service} from '../appService';
+import {SearchBar} from './searchBar';
+import {AcceptedSet} from './acceptSet';
+import {SliderBlock} from './sliderBlock';
+import {Suggestion} from './suggestion';
 
-/// <reference path="../interfaces.d.ts"/>
 
-//TODO how to bundle libraries so they dont have to be individually downloaded?
-
-import * as React        from "react";
-import * as ReactDOM     from "react-dom";
-
-import SearchBar   from './searchBar';
-import SliderBlock from './sliderBlock';
-import AcceptedSet from './acceptSet';
-import Suggestion from './suggestion';
-import Service     from '../appService';
-import Item from "../../item";
-import {IAppProps, IAppState} from "../interfaces";
-
-//require('bootstrap');
-
-class GroupSelectTool extends React.Component<IAppProps,IAppState>{
-    prevTextLen: number = 0;
-    depletedResults: boolean = false;
-    omissions: string[] = [];
-    suggestionPool: Item[] = [];
-    relatedPool: Item[] = [];
-    suggestionCount: number = 10;
-    acceptMax: number = 10;
-    poolMax: number = 100;
-    recentWeight: number = 0;
-    mostWeight: number = 0;
-    relatedWeight: number = 0;
-    mostUsed: number = 0;
-    lastUseIdx: number = 0;
-    mostRelated: number = 0;
-    filterText: string = "";
+class GroupSelectTool extends React.Component{
+    prevTextLen = 0;
+    depletedResults = false;
+    omissions = [];
+    suggestionPool = [];
+    relatedPool = [];
+    suggestionCount = 10;
+    acceptMax = 10;
+    poolMax = 100;
+    recentWeight = 0;
+    mostWeight = 0;
+    relatedWeight = 0;
+    mostUsed = 0;
+    lastUseIdx = 0;
+    mostRelated = 0;
+    filterText = "";
 
 
     constructor(props){
         super(props);
         this.state = {
             suggestionList: [],
-            accepteds: [],
+            accepteds: []
         };
 
         this.calcScoresAndSort = this.calcScoresAndSort.bind(this);
         this.updateWeights = this.updateWeights.bind(this);
+        this.combineLists = this.combineLists.bind(this);
+        this.onTextChange = this.onTextChange.bind(this);
+        this.cleanSuggestions = this.cleanSuggestions.bind(this);
+        this.acceptLease = this.acceptLease.bind(this);
+        this.checkOverflowAccepteds = this.checkOverflowAccepteds.bind(this);
+        this.toggleStale = this.toggleStale.bind(this);
+        this.commit = this.commit.bind(this);
+        this.getRelations = this.getRelations.bind(this);
+        this.handleHotkey = this.handleHotkey.bind(this);
+        this.updateOmissions = this.updateOmissions.bind(this);
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.getMaxValues = this.getMaxValues.bind(this);
+        this.render = this.render.bind(this);
     }
 
     // destination.concat(target.splice(start,1));
@@ -84,7 +86,7 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
 
     // Filter the current set of available numbers on the text.
     // If the resulting set is less than the S
-    onTextChange= function (allText: string) {
+    onTextChange= function (allText) {
         this.filterText = allText;
         this.forceUpdate();
 
@@ -131,7 +133,7 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
                             omissions: this.omissions,
                             filterText: text
                         },
-                        (data: Item[]) => {
+                        (data) => {
 
                             // Indicate if the server depleted all suggestions for this  string
                             this.depletedResults = data.length < deficit;
@@ -201,7 +203,7 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
         }
     };
 
-    toggleStale= function (index: number) {
+    toggleStale= function (index) {
         this.state.accepteds[index].stale ^= 1;
         this.state.accepteds.sort((a, b) => {
             return b.stale ? -1 : 1
@@ -232,7 +234,7 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
                     list: filteredByStale.map(el => el.name),
                     limit: this.suggestionCount,
                 },
-                (data: Item[]) => {
+                (data) => {
                     this.relatedPool = data || [];
                     fin();
                 }
@@ -274,7 +276,7 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
         })
     };
 
-    handleHotkey= function (e: KeyboardEvent) {
+    handleHotkey= function (e) {
         let num = parseInt(e.key);
         if (num >= 1 && num <= this.state.suggestionList.length && e.altKey) {
             this.acceptLease(this.state.suggestionList[num - 1].name)
@@ -307,7 +309,7 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
             this.mostUsed = data.mostUsed;
         });
     };
-    public render() {
+    render() {
         let suggestions = this.state.suggestionList.map((result, i) => {
             return <Suggestion key={i} data={result} idx={i+1} acceptLease={this.acceptLease}/>
         });
@@ -340,13 +342,8 @@ class GroupSelectTool extends React.Component<IAppProps,IAppState>{
     }
 }
 
+
 ReactDOM.render(
     <GroupSelectTool/>,
     document.getElementById('content')
 );
-
-
-
-
-// WEBPACK FOOTER //
-// ./src/components/app.tsx
